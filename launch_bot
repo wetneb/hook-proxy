@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cat fifo | ./irctk gitbot@irc.ulminfo.fr 
+
