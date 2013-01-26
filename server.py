@@ -37,13 +37,15 @@ class RepoConfig:
 
     def go_to_copy(self):
         self.wd_save = os.getcwd()
-        os.chdir(os.path.join(os.path.abspath(sys.path[0]), "copies/"+self.name))
+        os.chdir(os.path.join(os.path.abspath(sys.path[0]),
+            "copies/"+self.name))
     
     def back_to_cwd(self):
         os.chdir(self.wd_save)
 
     def clone(self):
-        self.has_local_copy = (subprocess.call(["test", "-d", "copies/"+self.name]) == 0)
+        self.has_local_copy = (subprocess.call(["test", "-d",
+            "copies/"+self.name]) == 0)
         if not self.has_local_copy:
             self.has_local_copy = True
             retcode = subprocess.call(["mkdir", "-p", "copies/"+self.name])
@@ -73,11 +75,13 @@ cfg.join("#bots")
 class HookHandler(tornado.web.RequestHandler):
     def post(self, command):
         if command == "hook":
-            json_data = json.loads(self.get_argument("payload", default=None, strip=False))
+            json_data = json.loads(self.get_argument("payload", default=None,
+                strip=False))
             last_name = ""
             for cmt in json_data["commits"]:
                 last_name = cmt["author"]["name"]
-                cfg.write("commit from "+cmt["author"]["email"]+" : "+cmt["message"])
+                cfg.write("commit from "+cmt["author"]["email"]+
+                        " : "+cmt["message"])
             cfg.check_make(last_name)
                 
                 
