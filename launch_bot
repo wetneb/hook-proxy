@@ -1,4 +1,5 @@
 #!/bin/sh
 
-cat fifo | ./irctk gitbot@irc.ulminfo.fr 
+cat fifo | ./irctk gitbot@irc.ulminfo.fr > log &
+./run
 
