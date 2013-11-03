@@ -84,9 +84,9 @@ class HookHandler(tornado.web.RequestHandler):
             last_name = ""
             for cmt in json_data["commits"]:
                 last_name = cmt["author"]["name"]
-                cfg.write("[" + json_data["repository"]["name"] +
-                        "] commit from " + cmt["author"]["email"]+
-                        " : "+cmt["message"])
+                cfg.write("\x0312" + json_data["repository"]["name"] +
+                        "\x0310 commit from \x0314" + cmt["author"]["email"]+
+                        "\x0310 : \x0315"+cmt["message"])
             # cfg.check_make(last_name)
                 
                 
