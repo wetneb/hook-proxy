@@ -5,8 +5,9 @@ import os
 import json
 import subprocess
 import random
+import codecs
 
-fifo = open("fifo", "w")
+fifo = codecs.open("fifo", "w", "utf-8")
 
 insultsdb = [
         "%s should learn to type.",
@@ -69,11 +70,12 @@ class RepoConfig:
             idx = random.randint(0, len(insultsdb)-1)
             cfg.write(insultsdb[idx] % to_be_blamed)
 
-cfg = RepoConfig("dummyrepo", "https://github.com/wetneb/dummyrepo")
-cfg.join("#bots")
+cfg = RepoConfig("kahn", "https://github.com/ccompile/kahn")
+cfg.join("#devroom")
 
 class HookHandler(tornado.web.RequestHandler):
     def post(self, command):
+        print "got command "+command
         if command == "hook":
             json_data = json.loads(self.get_argument("payload", default=None,
                 strip=False))
@@ -82,7 +84,7 @@ class HookHandler(tornado.web.RequestHandler):
                 last_name = cmt["author"]["name"]
                 cfg.write("commit from "+cmt["author"]["email"]+
                         " : "+cmt["message"])
-            cfg.check_make(last_name)
+            # cfg.check_make(last_name)
                 
                 
 application = tornado.web.Application([
