@@ -7,6 +7,8 @@ import subprocess
 import random
 import codecs
 
+
+
 fifo = codecs.open("fifo", "w", "utf-8")
 
 insultsdb = [
