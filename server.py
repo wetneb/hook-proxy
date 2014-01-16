@@ -66,13 +66,13 @@ class RepoConfig:
         self.clone()
         self.pull()
         self.go_to_copy()
-        retcode = subprocess.call(["sandbox", "make"])
+        retcode = subprocess.call(["make"])
         self.back_to_cwd()
         if retcode != 0:
             idx = random.randint(0, len(insultsdb)-1)
             cfg.write(insultsdb[idx] % to_be_blamed)
 
-cfg = RepoConfig("kahn", "https://github.com/ccompile/kahn")
+cfg = RepoConfig("stocpreg", "https://github.com/wetneb/stocpreg")
 cfg.join("#devroom")
 
 class HookHandler(tornado.web.RequestHandler):
@@ -86,8 +86,8 @@ class HookHandler(tornado.web.RequestHandler):
                 last_name = cmt["author"]["name"]
                 cfg.write("\x0314[\x0322" + json_data["repository"]["name"] +
                         "\x0314:\x0324" + cmt["author"]["name"]+
-                        "\x0314] : \x0315"+cmt["message"])
-            # cfg.check_make(last_name)
+                        "\x0314]: \x0315"+cmt["message"])
+            #cfg.check_make(last_name)
                 
                 
 application = tornado.web.Application([
