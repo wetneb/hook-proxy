@@ -14,8 +14,8 @@ fifo = codecs.open("fifo", "w", "utf-8")
 insultsdb = [
         "%s should learn to type.",
         "Take a stress pill, %s, and think things over.",
-        "Too much blood in %s's cafeine stream.",
-        "%s, do you think like you type ?",
+        "Too much blood in %s's caffeine stream.",
+        "%s, do you think like you type?",
         "%s pushed garbage to the repository.",
         "git blame %s" ]
 
