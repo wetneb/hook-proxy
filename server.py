@@ -84,8 +84,8 @@ class HookHandler(tornado.web.RequestHandler):
             last_name = ""
             branch = "master"
             prefix = 'refs/heads/'
-            if json_data['refs'].startswith(prefix):
-                branch = json_data['refs'][len(prefix):]
+            if json_data['ref'].startswith(prefix):
+                branch = json_data['ref'][len(prefix):]
             branch_msg = ''
             if branch != 'master':
                 branch_msg = '('+branch+')'
