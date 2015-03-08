@@ -19,6 +19,13 @@ insultsdb = [
         "%s pushed garbage to the repository.",
         "git blame %s" ]
 
+usernamedb = {
+        'threonorm':'bThom',
+        'wetneb':'pintoch',
+        'axeldavy':'davy',
+        'Lysxia':'lyxia'
+        }
+
 class RepoConfig:
     def __init__(self, name, url):
         self.name = name
@@ -92,9 +99,16 @@ class HookHandler(tornado.web.RequestHandler):
             for cmt in json_data["commits"]:
                 last_name = cmt["author"]["name"]
                 firstline = cmt["message"].split("\n")[0]
+
+                user = cmt['author']['name']
+                if 'username' in cmt['author']:
+                    user = cmt['author']['username']
+                if user in usernamedb:
+                    user = usernamedb[user]
+
                 if not firstline.startswith("Merge branch 'master' of"):
                     cfg.write("\x0314[\x0322" + json_data["repository"]["name"] + branch_msg +
-                            "\x0314:\x0324" + cmt["author"]["name"]+
+                            "\x0314:\x0324" + user +
                             "\x0314]: \x0315"+firstline)
             #cfg.check_make(last_name)
                 
