@@ -14,7 +14,7 @@ fifo = codecs.open("fifo", "w", "utf-8")
 insultsdb = [
         "%s should learn to type.",
         "Take a stress pill, %s, and think things over.",
-        "Too much blood in %s's cafeine stream.",
+        "Too much blood in %s's caffeine stream.",
         "%s, do you think like you type ?",
         "%s pushed garbage to the repository.",
         "git blame %s" ]
@@ -82,11 +82,18 @@ class HookHandler(tornado.web.RequestHandler):
             json_data = json.loads(self.get_argument("payload", default=None,
                 strip=False))
             last_name = ""
+            branch = "master"
+            prefix = 'refs/heads/'
+            if json_data['refs'].startswith(prefix):
+                branch = json_data['refs'][len(prefix):]
+            branch_msg = ''
+            if branch != 'master':
+                branch_msg = '('+branch+')'
             for cmt in json_data["commits"]:
                 last_name = cmt["author"]["name"]
                 firstline = cmt["message"].split("\n")[0]
                 if not firstline.startswith("Merge branch 'master' of"):
-                    cfg.write("\x0314[\x0322" + json_data["repository"]["name"] +
+                    cfg.write("\x0314[\x0322" + json_data["repository"]["name"] + branch_msg +
                             "\x0314:\x0324" + cmt["author"]["name"]+
                             "\x0314]: \x0315"+firstline)
             #cfg.check_make(last_name)
