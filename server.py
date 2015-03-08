@@ -15,7 +15,7 @@ insultsdb = [
         "%s should learn to type.",
         "Take a stress pill, %s, and think things over.",
         "Too much blood in %s's caffeine stream.",
-        "%s, do you think like you type ?",
+        "%s, do you think like you type?",
         "%s pushed garbage to the repository.",
         "git blame %s" ]
 
