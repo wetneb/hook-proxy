@@ -23,7 +23,8 @@ usernamedb = {
         'threonorm':'bThom',
         'wetneb':'pintoch',
         'axeldavy':'davy',
-        'Lysxia':'lyxia'
+        'Lysxia':'lyxia',
+        'nguyentito':'tito',
         }
 
 class RepoConfig:
