@@ -25,6 +25,7 @@ usernamedb = {
         'axeldavy':'davy',
         'Lysxia':'lyxia',
         'nguyentito':'tito',
+        'MathurinD':'Ish',
         }
 
 class RepoConfig:
