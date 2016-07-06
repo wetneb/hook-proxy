@@ -1,3 +1,6 @@
+# -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
 import tornado.ioloop
 import tornado.web
 import sys
@@ -6,7 +9,7 @@ import json
 import subprocess
 import random
 import codecs
-
+import re
 
 
 fifo = codecs.open("fifo", "w", "utf-8")
@@ -26,25 +29,41 @@ usernamedb = {
         'Lysxia':'lyxia',
         'nguyentito':'tito',
         'MathurinD':'Ish',
+        'p4bl0-':'p4bl0',
+        'bmsherman':'ben',
         }
+
+repo_to_channel = {
+        'dissemin':'#openaccess',
+        'communication':'#openaccess',
+        'proaixy':'#openaccess',
+        'deposits':'#dissemin',
+        'arxiv_metadata':'#openaccess',
+        'libbmc':'#openaccess',
+        'finite':'#coqstructiveMaths',
+        'sigmalocales':'#coqstructiveMaths',
+        }
+
 
 class RepoConfig:
     def __init__(self, name, url):
         self.name = name
         self.url = url
         self.has_local_copy = False
-        self.has_joined = False
-        self.channel = "#bots"
+        self.channels = []
+        self.default_channel = ""
 
     def join(self, chan):
         fifo.write("/join "+chan+"\n")
         fifo.flush()
-        self.channel = chan
-        self.has_joined = True
+        if not self.default_channel:
+            self.default_channel = chan
+        self.channels.append(chan)
 
-    def write(self, msg):
-        if self.has_joined:
-            fifo.write("["+self.channel+"] "+msg+"\n")
+    def write(self, project, msg):
+        chan = repo_to_channel.get(project, self.default_channel) 
+        if chan in self.channels:
+            fifo.write("["+chan+"] "+msg+"\n")
             fifo.flush()
 
     def go_to_copy(self):
@@ -82,7 +101,10 @@ class RepoConfig:
             cfg.write(insultsdb[idx] % to_be_blamed)
 
 cfg = RepoConfig("stocpreg", "https://github.com/wetneb/stocpreg")
+cfg.join("#openaccess")
+cfg.join('#dissemin')
 cfg.join("#devroom")
+cfg.join("#coqstructiveMaths")
 
 class HookHandler(tornado.web.RequestHandler):
     def post(self, command):
@@ -90,30 +112,86 @@ class HookHandler(tornado.web.RequestHandler):
         if command == "hook":
             json_data = json.loads(self.get_argument("payload", default=None,
                 strip=False))
-            last_name = ""
-            branch = "master"
-            prefix = 'refs/heads/'
-            if json_data['ref'].startswith(prefix):
-                branch = json_data['ref'][len(prefix):]
-            branch_msg = ''
-            if branch != 'master':
-                branch_msg = '('+branch+')'
-            for cmt in json_data["commits"]:
-                last_name = cmt["author"]["name"]
-                firstline = cmt["message"].split("\n")[0]
 
-                user = cmt['author']['name']
-                if 'username' in cmt['author']:
-                    user = cmt['author']['username']
+            if 'pull_request' in json_data or 'issue' in json_data:
+                repo = json_data['repository']['name']
+                user = json_data['sender']['login']
+                action = json_data['action']
+                if action != 'opened':
+                    return
                 if user in usernamedb:
                     user = usernamedb[user]
 
-                if not firstline.startswith("Merge branch 'master' of"):
-                    cfg.write("\x0314[\x0322" + json_data["repository"]["name"] + branch_msg +
-                            "\x0314:\x0324" + user +
-                            "\x0314]: \x0315"+firstline)
-            #cfg.check_make(last_name)
+                typ = ''
+                details = {}
+                if 'pull_request' in json_data:
+                    typ = 'PR'
+                    details = json_data['pull_request']
+                elif 'issue' in json_data:
+                    typ = 'issue'
+                    details = json_data['issue']
+
+                title = details['title']
+                number = str(details['number'])
+                cfg.write(repo,
+                    "\x0314[\x0322" + repo +
+                    "\x0314:\x0324" + user +
+                    "\x0314]: \x0315opened "+typ+" #"+number+": "+title)
+
+            elif 'ref' in json_data:
+                # Push
+                last_name = ""
+                branch = "master"
+                prefix = 'refs/heads/'
+                if json_data['ref'].startswith(prefix):
+                    branch = json_data['ref'][len(prefix):]
+                branch_msg = ''
+                repo = json_data['repository']['name']
+                if branch != 'master':
+                    branch_msg = '('+branch+')'
+                commits = list(json_data['commits'])
+                if len(commits) > 5:
+                    cfg.write(repo, "... lots of commits ...")
+                    commits = [commits[-1]]
+                for cmt in commits:
+                    last_name = cmt["author"]["name"]
+                    firstline = cmt["message"].split("\n")[0]
+
+                    user = cmt['author']['name']
+                    if 'username' in cmt['author']:
+                        user = cmt['author']['username']
+                    if user in usernamedb:
+                        user = usernamedb[user]
+
+                    if not firstline.startswith("Merge branch 'master' "):
+                        cfg.write(repo,
+                                "\x0314[\x0322" + repo + branch_msg +
+                                "\x0314:\x0324" + user +
+                                "\x0314]: \x0315"+firstline)
+
                 
+        elif command == "l10n":
+            repo = 'dissemin'
+            rx = re.compile(r'http://paste\.fulltxt\.net/[^ ]+')
+            secret_key = "003937feb"
+            if self.get_argument("secret", default="", strip=True) != secret_key:
+                return
+
+            try:
+                match = int(self.get_argument("nblines", default="", strip=True))
+                cfg.write(repo, ('\x0314[translations]\x0315 a3nm: %d lines' % match))
+            except ValueError:
+                pass
+        elif command == "deposit":
+            try:
+                name = self.get_argument("name", default="Inconnu", strip=True)
+                repo = self.get_argument("repo", default="Dépôt inconnu", strip=True)
+                url = self.get_argument("paperurl", default="", strip=True)
+                cfg.write("deposits",
+                    ('\x0314[\x0322%s\x0314]: \x0324%s\x0314 a déposé %s' %
+                    (repo, name, url)))
+            except ValueError:
+                pass
                 
 application = tornado.web.Application([
     (r"/(.*)", HookHandler, dict()),
